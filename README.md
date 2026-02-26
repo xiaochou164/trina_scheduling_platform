@@ -8,4 +8,10 @@
   Run `npm i` to install the dependencies.
 
   Run `npm run dev` to start the development server.
+
+  ## Running with real backend service
+
+  Run `npm run api` to start the backend API server on `http://localhost:8787`.
+
+  Run `npm run dev` in another terminal to start Vite. The front-end `/api/*` requests are proxied to the backend server.
   
