@@ -14,7 +14,6 @@ import {
   Menu,
   X,
   LogOut,
-  ChevronDown
 } from 'lucide-react';
 
 const menuItems = [
@@ -31,8 +30,6 @@ const menuItems = [
 
 export function RootLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [envDropdownOpen, setEnvDropdownOpen] = useState(false);
-  const [currentEnv, setCurrentEnv] = useState<'Prod' | 'Pre' | 'Dev'>('Prod');
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -95,42 +92,8 @@ export function RootLayout() {
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             
-            {/* Environment Selector */}
-            <div className="relative">
-              <button
-                onClick={() => setEnvDropdownOpen(!envDropdownOpen)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
-                  currentEnv === 'Prod' ? 'border-red-200 bg-red-50 text-red-700' :
-                  currentEnv === 'Pre' ? 'border-yellow-200 bg-yellow-50 text-yellow-700' :
-                  'border-green-200 bg-green-50 text-green-700'
-                }`}
-              >
-                <span className="w-2 h-2 rounded-full bg-current"></span>
-                <span className="font-medium">{currentEnv}</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              
-              {envDropdownOpen && (
-                <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-32">
-                  {(['Prod', 'Pre', 'Dev'] as const).map((env) => (
-                    <button
-                      key={env}
-                      onClick={() => {
-                        setCurrentEnv(env);
-                        setEnvDropdownOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2"
-                    >
-                      <span className={`w-2 h-2 rounded-full ${
-                        env === 'Prod' ? 'bg-red-500' :
-                        env === 'Pre' ? 'bg-yellow-500' :
-                        'bg-green-500'
-                      }`}></span>
-                      {env}
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div className="px-4 py-2 rounded-lg border border-blue-100 bg-blue-50 text-blue-700 text-sm">
+              统一运行视图（无环境切换）
             </div>
           </div>
 

@@ -12,6 +12,7 @@ export interface WorkflowNode {
 }
 
 export interface WorkflowEdge {
+  id: string;
   from: string;
   to: string;
   condition?: string;
@@ -23,7 +24,11 @@ interface WorkflowCanvasProps {
   onNodesChange: (nodes: WorkflowNode[]) => void;
   onEdgesChange: (edges: WorkflowEdge[]) => void;
   onNodeSelect: (nodeId: string | null) => void;
+  onNodeConnect?: (fromNodeId: string, toNodeId: string) => void;
   selectedNodeId: string | null;
+  selectedEdgeId?: string | null;
+  onEdgeSelect?: (edgeId: string | null) => void;
+  connectMode?: boolean;
 }
 
 const NodeComponent = ({ node, onSelect, isSelected }: { node: WorkflowNode; onSelect: () => void; isSelected: boolean }) => {
@@ -83,7 +88,18 @@ const NodeComponent = ({ node, onSelect, isSelected }: { node: WorkflowNode; onS
   );
 };
 
-export function WorkflowCanvas({ nodes, edges, onNodesChange, onEdgesChange, onNodeSelect, selectedNodeId }: WorkflowCanvasProps) {
+export function WorkflowCanvas({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onNodeSelect,
+  onNodeConnect,
+  selectedNodeId,
+  selectedEdgeId,
+  onEdgeSelect,
+  connectMode = false,
+}: WorkflowCanvasProps) {
   const [scale, setScale] = useState(1);
 
   const [, drop] = useDrop({
@@ -117,8 +133,30 @@ export function WorkflowCanvas({ nodes, edges, onNodesChange, onEdgesChange, onN
     },
   });
 
+  const handleNodeClick = (nodeId: string) => {
+    if (!connectMode) {
+      onNodeSelect(nodeId);
+      onEdgeSelect?.(null);
+      return;
+    }
+
+    if (!selectedNodeId) {
+      onNodeSelect(nodeId);
+      onEdgeSelect?.(null);
+      return;
+    }
+
+    if (selectedNodeId === nodeId) {
+      onNodeSelect(null);
+      return;
+    }
+
+    onNodeConnect?.(selectedNodeId, nodeId);
+    onNodeSelect(null);
+  };
+
   const renderEdges = () => {
-    return edges.map((edge, index) => {
+    return edges.map((edge) => {
       const fromNode = nodes.find((n) => n.id === edge.from);
       const toNode = nodes.find((n) => n.id === edge.to);
       
@@ -131,13 +169,18 @@ export function WorkflowCanvas({ nodes, edges, onNodesChange, onEdgesChange, onN
 
       return (
         <line
-          key={index}
+          key={edge.id}
           x1={x1}
           y1={y1}
           x2={x2}
           y2={y2}
-          stroke="#94a3b8"
-          strokeWidth="2"
+          stroke={selectedEdgeId === edge.id ? '#2563eb' : '#94a3b8'}
+          strokeWidth={selectedEdgeId === edge.id ? '3' : '2'}
+          className="cursor-pointer pointer-events-auto"
+          onClick={() => {
+            onEdgeSelect?.(edge.id);
+            onNodeSelect(null);
+          }}
           markerEnd="url(#arrowhead)"
         />
       );
@@ -175,7 +218,7 @@ export function WorkflowCanvas({ nodes, edges, onNodesChange, onEdgesChange, onN
         style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
       >
         <div className="relative min-w-[2000px] min-h-[1500px]">
-          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+          <svg className="absolute inset-0 w-full h-full">
             <defs>
               <marker
                 id="arrowhead"
@@ -195,7 +238,7 @@ export function WorkflowCanvas({ nodes, edges, onNodesChange, onEdgesChange, onN
             <NodeComponent
               key={node.id}
               node={node}
-              onSelect={() => onNodeSelect(node.id)}
+              onSelect={() => handleNodeClick(node.id)}
               isSelected={selectedNodeId === node.id}
             />
           ))}
